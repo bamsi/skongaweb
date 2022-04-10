@@ -78,6 +78,7 @@ Route::middleware(['jwt.verify:REGISTER_TEACHER'])->group(function () {
 Route::middleware(['jwt.verify:REGISTER_STUDENT'])->group(function () {
     Route::get('/students/{institution_id}/{class_id}/{school_calendar_id}', [StudentController::class, 'getStudentClass']);
     Route::post('/import_students', [StudentController::class, 'importStudents']);
+    Route::post('/update_student/{class_id}/{school_calendar_id}', [StudentController::class, 'updateStudent']);
 });
 
 Route::middleware(['jwt.verify:PUBLISH_RESULT'])->group(function () {

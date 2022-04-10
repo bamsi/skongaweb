@@ -51,7 +51,6 @@ class StudentController extends Controller
         $result = $this->getStudentSubject($class_id, $subject_id);
         $message = 'Student record has been updated successfully';
         return response()->json(compact('message','result'));
-
     }
 
     public function getStudentSubject($class_id, $subject_id){
@@ -113,8 +112,6 @@ class StudentController extends Controller
                 'tribe'=>$tribe, 'disability'=>$disability, 'comments'=>$comments, 'address'=>$address, 'phone'=>$phone,
                 'active'=>true, 'institution_id'=>$institution_id);
 
-                //return response()->json(compact('data'));
-
                 $id = DB::table('student')->insertGetId($data);
                 DB::table('student_class')->insert(array(
                 'student_id'=>$id,
@@ -132,12 +129,12 @@ class StudentController extends Controller
                     'institution_id' => $institution_id
                 ]);
                 //get permission
-                $permisisons = DB::table('role')->join('role_permission', 'role_permission.role_id', 'role.id')
-                            ->where('role.code', 'ST')
-                            ->select('role_permission.permission_id AS id')
-                            ->get();
+                $permission = DB::table('role')->join('role_permission', 'role_permission.role_id', 'role.id')
+                               ->where('role.code', 'ST')
+                               ->select('role_permission.permission_id AS id')
+                               ->get();
                 $user_permission = array();
-                foreach($permisisons as $i){
+                foreach($permission as $i){
                     array_push($user_permission, array('permission_id'=>$i->id, 'user_id'=>$user->id));
                 }
                 DB::table('permission_user')->insert($user_permission);
@@ -153,8 +150,8 @@ class StudentController extends Controller
                 ->where('student.institution_id', $institution_id)
                 ->where('student_class.school_calendar_id', $school_calendar_id)
                 ->where('student_class.class_id', $class_id)
-                ->select([DB::raw("CONCAT(student.first_name,' ',COALESCE(student.middle_name, ''),' ', student.last_name ) AS name"), 
-                'student.preferred_id AS student_id', 'student.gender', 'student.phone', 'student.email'])
+                ->select([DB::raw("COALESCE(student.middle_name, '') AS middle_name"), 'student.first_name', 'student.last_name', 'student.institution_id', 
+                'student.preferred_id AS student_id', 'student.gender', 'student.phone', 'student.email', 'student.id', 'student.active'])
                 ->orderBy('student.id', 'DESC')
                 ->get();
     }
@@ -174,6 +171,26 @@ class StudentController extends Controller
                   'student.preferred_id', 'student.gender', 'student.phone', 'student.email', 'student.id'])
                   ->get();
         return response()->json(compact('result'));
+    }
+
+    public function updateStudent(Request $request,  $class_id, $school_calendar_id){
+       $student = [
+                   'first_name'  => $request->get('first_name'), 
+                   'middle_name' => $request->get('middle_name'),
+                   'last_name'   => $request->get('last_name'),
+                   'gender'      => $request->get('gender'),
+                   'email'       => $request->get('email'),
+                   'phone'       => $request->get('phone'),
+                   'address'     => $request->get('address'),
+                   'active'      => $request->get('active')
+                ];
+       $institution_id = $request->get('institution_id');
+       $id = $request->get('id');
+       DB::table('student')->where('id', $id)->update($student);
+       $data = $this->getStudentData($institution_id, $school_calendar_id, $class_id);
+       $message = 'Students records has been updated successfully';
+       return response()->json(compact('data', 'message'));
+
     }
 
 }
