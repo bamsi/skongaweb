@@ -158,7 +158,7 @@ class StudentController extends Controller
 
     //get students list
     public function getStudents($class_id, $school_calendar_id){
-        $class   = Grade::where('parents_id', $class_id)->pluck('id');
+        $class   = Grade::where('parent_id', $class_id)->pluck('id');
         $streams = $class->isEmpty()?collect([$class_id]):$class;
 
         //get students
